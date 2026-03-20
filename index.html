@@ -113,12 +113,27 @@
         <button class="report-btn" onclick="openMonthlySummary()">
           <i class="fas fa-chart-pie"></i> Report
         </button>
-        <button class="export-btn" onclick="exportCSV()">
-          <i class="fas fa-download"></i> Export
-        </button>
         <button class="lock-btn" onclick="lockApp()" title="Lock app">
           <i class="fas fa-lock"></i>
         </button>
+        <div class="settings-dropdown" id="settingsDropdown">
+          <button class="settings-btn" onclick="toggleSettingsMenu()" title="Settings">
+            <i class="fas fa-cog"></i>
+          </button>
+          <div class="settings-menu" id="settingsMenu">
+            <div class="settings-menu-header">Settings</div>
+            <div class="settings-menu-item" onclick="closeSettingsMenu();openChangePinModal()">
+              <i class="fas fa-key"></i> Change PIN
+            </div>
+            <div class="settings-menu-item" onclick="closeSettingsMenu();exportCSV()">
+              <i class="fas fa-download"></i> Export CSV
+            </div>
+            <div class="settings-menu-divider"></div>
+            <div class="settings-menu-item settings-menu-item--danger" onclick="closeSettingsMenu();openResetModal()">
+              <i class="fas fa-trash-alt"></i> Reset App
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -614,6 +629,25 @@
         <div class="modal-footer">
           <button class="btn btn-secondary" onclick="closeModal('changePinModal')">Cancel</button>
           <button class="btn btn-primary" onclick="changePin()">Update PIN</button>
+        </div>
+      </div>
+    </div>
+
+        <!-- ═══════════════ RESET CONFIRM MODAL ═══════════════ -->
+    <div id="resetModal" class="modal">
+      <div class="modal-content" style="width:380px">
+        <div class="modal-header">
+          <h2 class="modal-title"><i class="fas fa-exclamation-triangle" style="color:#f59e0b;margin-right:.5rem"></i>Reset App</h2>
+          <button class="close-btn" onclick="closeModal('resetModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align:center;padding:1.75rem 1.5rem;">
+          <div style="font-size:2.5rem;margin-bottom:.75rem;">⚠️</div>
+          <p style="color:#e2e8f0;font-size:.95rem;line-height:1.6;margin-bottom:.75rem;">This will permanently delete <strong>all your cards, transactions, and settings.</strong></p>
+          <p style="color:#ef4444;font-size:.82rem;">This cannot be undone. Export your data first if needed.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('resetModal')">Cancel</button>
+          <button class="btn btn-danger" onclick="confirmReset()"><i class="fas fa-trash-alt"></i> Yes, Reset Everything</button>
         </div>
       </div>
     </div>
