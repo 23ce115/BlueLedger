@@ -1,3 +1,9 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SECURITY — AES-256 PIN ENCRYPTION
+   sessionPin lives ONLY in RAM. localStorage holds
+   only encrypted ciphertext — unreadable without PIN.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
 let sessionPin     = null;
 let autoLockTimer  = null;
 let pinBuffer      = "";
@@ -55,6 +61,10 @@ const CAT_COLORS = {
 };
 
 const CARD_ACCENT_COLORS = ["#10b981","#3b82f6","#f59e0b","#ec4899"];
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MULTI-CARD HELPERS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 function syncActiveToCards() {
   if (cards[activeCardIdx]) {
@@ -913,6 +923,24 @@ function exportCSV() {
    MODALS
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+
+function syncFabVisibility() {
+  const fab = document.querySelector(".add-buttons");
+  if (!fab) return;
+  // Hide if not onboarded yet
+  if (!userData) { fab.style.display = "none"; return; }
+  // Hide if lock screen is showing
+  if (document.getElementById("lockScreen").style.display !== "none") { fab.style.display = "none"; return; }
+  // On mobile: hide if any modal is open
+  if (window.innerWidth <= 768) {
+    const anyOpen = Array.from(document.querySelectorAll(".modal")).some(m => m.style.display === "block");
+    fab.style.display = anyOpen ? "none" : "";
+    return;
+  }
+  // Desktop: always show once onboarded
+  fab.style.display = "";
+}
+
 function openModal(id) {
   document.getElementById(id).style.display = "block";
   document.body.style.overflow = "hidden";
@@ -937,10 +965,7 @@ function openModal(id) {
 function closeModal(id) {
   document.getElementById(id).style.display = "none";
   document.body.style.overflow = "auto";
-  const anyOpen = Array.from(document.querySelectorAll(".modal")).some(m => m.style.display === "block");
-  const locked = document.getElementById("lockScreen").style.display !== "none";
-  const fab = document.querySelector(".add-buttons");
-  if (fab && !anyOpen && !locked) fab.style.display = "";
+  syncFabVisibility();
   if (id === "onboardingModal" && addingNewCard) {
     addingNewCard = false;
     const modal = document.getElementById("onboardingModal");
@@ -1039,6 +1064,7 @@ function completeOnboarding() {
   updateMyCardWidget();
   populateCategorySelects();
   refreshAll();
+  syncFabVisibility();
   notify("Welcome, " + name.split(" ")[0] + "! 🔒 Encrypted & secured.", "success");
 }
 
@@ -1061,3 +1087,4 @@ if (hasStoredData()) {
 renderCardSwitcher();
 populateCategorySelects();
 refreshAll();
+syncFabVisibility();
