@@ -9,9 +9,9 @@
     <!-- AES-256 encryption via CryptoJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js" crossorigin="anonymous"></script>
   </head>
-  <body class="modal-open">
+  <body>
 
-    <!-- LOCK SCREEN -->
+    <!-- ═══════════════ LOCK SCREEN ═══════════════ -->
     <div id="lockScreen" class="lock-screen" style="display:none">
       <div class="lock-card">
         <div class="lock-logo">
@@ -43,7 +43,7 @@
       </div>
     </div>
 
-    <!-- ONBOARDING -->
+    <!-- ═══════════════ ONBOARDING ═══════════════ -->
     <div id="onboardingModal" class="modal" style="display:block">
       <div class="modal-content onboarding-content">
         <div class="logo-container-centered">
@@ -71,12 +71,12 @@
           <div class="pin-section">
           <div class="ob-section" style="padding:0;margin-top:1rem">Security</div>
           <div class="form-group">
-            <label class="form-label">Set a PIN (4 digits)</label>
-            <input type="password" class="form-input" id="ob-pin" placeholder="e.g. 1234" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" />
+            <label class="form-label">Set a PIN (4–6 digits)</label>
+            <input type="password" class="form-input" id="ob-pin" placeholder="e.g. 1234" maxlength="6" inputmode="numeric" pattern="[0-9]{4,6}" />
           </div>
           <div class="form-group">
             <label class="form-label">Confirm PIN</label>
-            <input type="password" class="form-input" id="ob-pin2" placeholder="Repeat PIN" maxlength="4" inputmode="numeric" />
+            <input type="password" class="form-input" id="ob-pin2" placeholder="Repeat PIN" maxlength="6" inputmode="numeric" />
             <div class="form-hint"><i class="fas fa-lock"></i> Your data is encrypted with this PIN. Don't forget it.</div>
           </div>
           </div>
@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <!--HEADER-->
+    <!-- ═══════════════ HEADER ═══════════════ -->
     <div class="header">
       <div class="logo-container">
         <img src="logo2.svg" alt="" />
@@ -122,12 +122,12 @@
       </div>
     </div>
 
-    <!--CARD SWITCHER-->
+    <!-- ═══════════════ CARD SWITCHER ═══════════════ -->
     <div class="card-switcher-bar">
       <div id="cardSwitcher" class="card-switcher"></div>
     </div>
 
-    <!--MAIN-->
+    <!-- ═══════════════ MAIN ═══════════════ -->
     <div class="main-content">
       <div class="dashboard-grid">
 
@@ -259,7 +259,7 @@
     </div>
 
     <!-- FABs -->
-    <div class="add-buttons">
+    <div class="add-buttons" style="display:none">
       <div class="fab-wrap"><span class="fab-label">Manage Categories</span>
         <button class="fab fab-cat" onclick="openCategoryManager()"><i class="fas fa-tags"></i></button>
       </div>
@@ -277,7 +277,7 @@
       <div class="ctx-item danger" onclick="handleCtxDelete()"><i class="fas fa-trash" style="width:14px"></i> Delete</div>
     </div>
 
-    <!--INCOME MODAL-->
+    <!-- ═══════════════ INCOME MODAL ═══════════════ -->
     <div id="incomeModal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -324,7 +324,7 @@
       </div>
     </div>
 
-    <!--EXPENSE MODAL-->
+    <!-- ═══════════════ EXPENSE MODAL ═══════════════ -->
     <div id="expenseModal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -371,7 +371,7 @@
       </div>
     </div>
 
-    <!--EDIT MODAL-->
+    <!-- ═══════════════ EDIT MODAL ═══════════════ -->
     <div id="editModal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
@@ -407,7 +407,7 @@
       </div>
     </div>
 
-    <!--SORT MODAL-->
+    <!-- ═══════════════ SORT MODAL ═══════════════ -->
     <div id="sortModal" class="modal">
       <div class="modal-content" style="width:320px">
         <div class="modal-header">
@@ -430,7 +430,7 @@
       </div>
     </div>
 
-    <!--FILTER MODAL-->
+    <!-- ═══════════════ FILTER MODAL ═══════════════ -->
     <div id="filterModal" class="modal">
       <div class="modal-content" style="width:340px">
         <div class="modal-header">
@@ -452,7 +452,7 @@
       </div>
     </div>
 
-    <!--DELETE CONFIRM MODAL-->
+    <!-- ═══════════════ DELETE CONFIRM MODAL ═══════════════ -->
     <div id="deleteModal" class="modal">
       <div class="modal-content" style="width:360px">
         <div class="modal-header">
@@ -470,7 +470,7 @@
       </div>
     </div>
 
-    <!--MANAGE CATEGORIES MODAL-->
+    <!-- ═══════════════ MANAGE CATEGORIES MODAL ═══════════════ -->
     <div id="categoryModal" class="modal">
       <div class="modal-content" style="width:400px">
         <div class="modal-header">
@@ -504,7 +504,7 @@
       </div>
     </div>
 
-    <!--SET BUDGETS MODAL-->
+    <!-- ═══════════════ SET BUDGETS MODAL ═══════════════ -->
     <div id="budgetModal" class="modal">
       <div class="modal-content" style="width:420px">
         <div class="modal-header">
@@ -522,7 +522,7 @@
       </div>
     </div>
 
-    <!-- MONTHLY SUMMARY MODAL-->
+    <!-- ═══════════════ MONTHLY SUMMARY MODAL ═══════════════ -->
     <div id="summaryModal" class="modal">
       <div class="modal-content" style="width:520px">
         <div class="modal-header">
@@ -572,7 +572,7 @@
       </div>
     </div>
 
-    <!--DELETE CARD MODAL-->
+    <!-- ═══════════════ DELETE CARD MODAL ═══════════════ -->
     <div id="deleteCardModal" class="modal">
       <div class="modal-content" style="width:360px">
         <div class="modal-header">
@@ -590,7 +590,7 @@
       </div>
     </div>
 
-    <!--CHANGE PIN MODAL-->
+    <!-- ═══════════════ CHANGE PIN MODAL ═══════════════ -->
     <div id="changePinModal" class="modal">
       <div class="modal-content" style="width:360px">
         <div class="modal-header">
@@ -603,7 +603,7 @@
             <input type="password" class="form-input" id="cpOld" maxlength="6" inputmode="numeric" placeholder="Current PIN" />
           </div>
           <div class="form-group">
-            <label class="form-label">New PIN (4 digits)</label>
+            <label class="form-label">New PIN (4–6 digits)</label>
             <input type="password" class="form-input" id="cpNew" maxlength="6" inputmode="numeric" placeholder="New PIN" />
           </div>
           <div class="form-group">
