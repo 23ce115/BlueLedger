@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BlueLedger</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="style (3).css" />
+    <!-- AES-256 encryption via CryptoJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js" crossorigin="anonymous"></script>
+  </head>
+  <body class="modal-open">
+
+    <!-- LOCK SCREEN -->
+    <div id="lockScreen" class="lock-screen" style="display:none">
+      <div class="lock-card">
+        <div class="lock-logo">
+          <img src="logo2.svg" alt="BlueLedger" />
+        </div>
+        <div class="lock-title">BlueLedger</div>
+        <div class="lock-subtitle" id="lockSubtitle">Enter your PIN to continue</div>
+        <div class="pin-dots" id="pinDots">
+          <span class="pin-dot" id="pd1"></span>
+          <span class="pin-dot" id="pd2"></span>
+          <span class="pin-dot" id="pd3"></span>
+          <span class="pin-dot" id="pd4"></span>
+        </div>
+        <div class="pin-pad">
+          <button class="pin-key" onclick="pinPress('1')">1</button>
+          <button class="pin-key" onclick="pinPress('2')">2</button>
+          <button class="pin-key" onclick="pinPress('3')">3</button>
+          <button class="pin-key" onclick="pinPress('4')">4</button>
+          <button class="pin-key" onclick="pinPress('5')">5</button>
+          <button class="pin-key" onclick="pinPress('6')">6</button>
+          <button class="pin-key" onclick="pinPress('7')">7</button>
+          <button class="pin-key" onclick="pinPress('8')">8</button>
+          <button class="pin-key" onclick="pinPress('9')">9</button>
+          <button class="pin-key pin-key--empty"></button>
+          <button class="pin-key" onclick="pinPress('0')">0</button>
+          <button class="pin-key pin-key--del" onclick="pinBackspace()"><i class="fas fa-backspace"></i></button>
+        </div>
+        <div class="lock-error" id="lockError"></div>
+      </div>
+    </div>
+
+    <!-- ONBOARDING -->
+    <div id="onboardingModal" class="modal" style="display:block">
+      <div class="modal-content onboarding-content">
+        <div class="logo-container-centered">
+          <img src="logo2.svg" alt="BlueLedger Logo" class="onboarding-logo" />
+        </div>
+        <div class="ob-sub">Your personal finance dashboard — let's get you set up</div>
+        <div class="ob-divider"></div>
+        <div class="ob-body">
+          <div class="ob-section" style="padding:0;margin-top:.75rem">Your Details</div>
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-input" id="ob-name" placeholder="e.g. Shrey Chauhan" />
+          </div>
+          <div class="ob-section" style="padding:0;margin-top:1rem">Card Details</div>
+          <div class="form-group">
+            <label class="form-label">Last 4 digits of card number</label>
+            <input type="text" class="form-input" id="ob-card" placeholder="e.g. 4567" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" />
+            <div class="form-hint"><i class="fas fa-shield-alt"></i> Only the last 4 digits are stored — never your full number</div>
+          </div>
+          <div class="ob-section" style="padding:0;margin-top:1rem">Budget</div>
+          <div class="form-group">
+            <label class="form-label">Monthly Spending Limit (₹)</label>
+            <input type="number" class="form-input" id="ob-limit" placeholder="e.g. 30000" min="1" />
+          </div>
+          <div class="pin-section">
+          <div class="ob-section" style="padding:0;margin-top:1rem">Security</div>
+          <div class="form-group">
+            <label class="form-label">Set a PIN (4 digits)</label>
+            <input type="password" class="form-input" id="ob-pin" placeholder="e.g. 1234" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm PIN</label>
+            <input type="password" class="form-input" id="ob-pin2" placeholder="Repeat PIN" maxlength="4" inputmode="numeric" />
+            <div class="form-hint"><i class="fas fa-lock"></i> Your data is encrypted with this PIN. Don't forget it.</div>
+          </div>
+          </div>
+        </div>
+        <div class="ob-footer dual-buttons">
+          <button class="btn btn-cancel-ob" onclick="closeModal('onboardingModal')">Cancel</button>
+          <button class="btn btn-onboard" onclick="completeOnboarding()">Get Started</button>
+        </div>
+      </div>
+    </div>
+
+    <!--HEADER-->
+    <div class="header">
+      <div class="logo-container">
+        <img src="logo2.svg" alt="" />
+      </div>
+      <div class="header-controls">
+        <div class="period-dropdown">
+          <button class="period-btn" id="periodBtn" onclick="togglePeriodMenu()">
+            <i class="fas fa-calendar-week"></i>
+            <span id="periodLabel">Monthly</span>
+            <i class="fas fa-chevron-down" style="font-size:.65rem"></i>
+          </button>
+          <div class="period-menu" id="periodMenu">
+            <div class="period-menu-item" onclick="setPeriod('daily')"><i class="fas fa-sun" style="color:#f59e0b;width:16px"></i>Daily</div>
+            <div class="period-menu-item" onclick="setPeriod('weekly')"><i class="fas fa-calendar-week" style="color:#3b82f6;width:16px"></i>Weekly</div>
+            <div class="period-menu-item active" onclick="setPeriod('monthly')"><i class="fas fa-calendar-alt" style="color:#10b981;width:16px"></i>Monthly</div>
+          </div>
+        </div>
+        <div class="date-pill">
+          <i class="fas fa-calendar" style="color:#6b7280;font-size:.8rem"></i>
+          <span id="headerDate">—</span>
+        </div>
+        <button class="report-btn" onclick="openMonthlySummary()">
+          <i class="fas fa-chart-pie"></i> Report
+        </button>
+        <button class="export-btn" onclick="exportCSV()">
+          <i class="fas fa-download"></i> Export
+        </button>
+        <button class="lock-btn" onclick="lockApp()" title="Lock app">
+          <i class="fas fa-lock"></i>
+        </button>
+      </div>
+    </div>
+
+    <!--CARD SWITCHER-->
+    <div class="card-switcher-bar">
+      <div id="cardSwitcher" class="card-switcher"></div>
+    </div>
+
+    <!--MAIN-->
+    <div class="main-content">
+      <div class="dashboard-grid">
+
+        <!-- Income Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Income &nbsp;<span id="badge1" style="text-transform:none;font-size:.68rem;color:#94a3b8;font-weight:400;">(Monthly)</span></h3>
+            <button class="card-menu-btn" title="Card info" onclick="showCardInfo('income')"><i class="fas fa-ellipsis-h"></i></button>
+          </div>
+          <div class="amount income-amount" id="dashIncome">₹0.00</div>
+          <div class="change" id="dashIncomeChange"><i class="fas fa-minus"></i>&nbsp;No transactions yet</div>
+        </div>
+
+        <!-- Expense Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Expenses &nbsp;<span id="badge2" style="text-transform:none;font-size:.68rem;color:#94a3b8;font-weight:400;">(Monthly)</span></h3>
+            <button class="card-menu-btn" title="Card info" onclick="showCardInfo('expense')"><i class="fas fa-ellipsis-h"></i></button>
+          </div>
+          <div class="amount expense-amount" id="dashExpense">₹0.00</div>
+          <div class="change" id="dashExpenseChange"><i class="fas fa-minus"></i>&nbsp;No transactions yet</div>
+        </div>
+
+        <!-- Net Balance Card -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Net Balance &nbsp;<span id="badge3" style="text-transform:none;font-size:.68rem;color:#94a3b8;font-weight:400;">(Monthly)</span></h3>
+            <button class="card-menu-btn" title="Card info" onclick="showCardInfo('net')"><i class="fas fa-ellipsis-h"></i></button>
+          </div>
+          <div class="amount net-positive" id="dashNet">₹0.00</div>
+          <div style="font-size:.72rem;color:#64748b;margin-bottom:.25rem;" id="dashNetSign">Surplus</div>
+          <div class="change" id="dashNetChange"><i class="fas fa-minus"></i>&nbsp;No transactions yet</div>
+        </div>
+
+        <!-- My Card -->
+        <div class="card my-card">
+          <div class="card-header">
+            <h3 class="card-title">My Card</h3>
+            <button class="card-menu-btn" style="color:rgba(255,255,255,.6)" onclick="showCardInfo('mycard')"><i class="fas fa-ellipsis-h"></i></button>
+          </div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.7);margin-bottom:.75rem;">Primary wallet</div>
+          <div class="card-chip"></div>
+          <div class="card-number" id="cardNumberDisplay">•••• •••• •••• ••••</div>
+          <div class="card-holder-name" id="cardHolderDisplay">YOUR NAME</div>
+          <div class="card-logo">
+            <div class="card-logo-circle logo-red"></div>
+            <div class="card-logo-circle logo-orange"></div>
+          </div>
+          <div class="spending-section">
+            <div class="spending-label">Spending Limit</div>
+            <div class="spending-limit-val" id="spendLimitVal">₹0</div>
+            <div class="spending-used-val" id="spendUsedVal">Used: ₹0</div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart + All Expenses -->
+      <div class="chart-section">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Overview &nbsp;<span id="chartBadge" style="text-transform:none;font-size:.68rem;color:#94a3b8;font-weight:400;">(This Year)</span></h3>
+            <button class="card-menu-btn" onclick="showCardInfo('chart')"><i class="fas fa-ellipsis-h"></i></button>
+          </div>
+          <div class="chart-container" id="chartContainer"></div>
+          <div class="chart-labels" id="chartLabels"></div>
+          <div class="chart-legend">
+            <span><span class="legend-dot" style="background:#10b981"></span>Income</span>
+            <span><span class="legend-dot" style="background:#f97316"></span>Expense</span>
+          </div>
+        </div>
+
+        <!-- All Expenses -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">All Expenses &nbsp;<span id="expBadge" style="text-transform:none;font-size:.68rem;color:#94a3b8;font-weight:400;">(Monthly)</span></h3>
+            <button class="card-menu-btn set-budgets-btn" onclick="openBudgetModal()" title="Set category budgets">
+              <i class="fas fa-sliders-h"></i>
+            </button>
+          </div>
+          <div style="font-size:.72rem;color:#9ca3af;margin-bottom:.6rem;">Breakdown by category</div>
+          <div class="total-expenses" id="allExpTotal">₹0</div>
+          <div class="period-values-row">
+            <div class="period-val-item"><div class="pv-label">Daily</div><div class="pv-value" id="pvDaily">₹0</div></div>
+            <div class="period-val-item"><div class="pv-label">Weekly</div><div class="pv-value" id="pvWeekly">₹0</div></div>
+            <div class="period-val-item"><div class="pv-label">Monthly</div><div class="pv-value" id="pvMonthly">₹0</div></div>
+          </div>
+          <div class="color-bar"></div>
+          <ul class="expense-categories" id="categoryList"></ul>
+        </div>
+      </div>
+
+      <!-- Transactions -->
+      <div class="card" style="margin-bottom:2rem">
+        <div class="section-header">
+          <h3 class="card-title">
+            Recent Transactions &nbsp;<span id="txnBadge" style="text-transform:none;font-size:.68rem;color:#94a3b8;font-weight:400;">(Monthly)</span>
+          </h3>
+          <div class="filters">
+            <button class="filter-btn" id="sortBtn" onclick="openSortModal()"><i class="fas fa-sort"></i> Sort</button>
+            <button class="filter-btn" id="filterBtn" onclick="openFilterModal()"><i class="fas fa-filter"></i> Filter</button>
+          </div>
+        </div>
+        <div class="txn-meta">
+          <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" class="search-input" id="txnSearch" placeholder="Search by description or category…" oninput="onSearchInput(this.value)" />
+          </div>
+          <span class="txn-count-badge" id="txnCount"></span>
+        </div>
+        <div class="table-wrapper">
+          <table class="transaction-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="txnBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- FABs -->
+    <div class="add-buttons">
+      <div class="fab-wrap"><span class="fab-label">Manage Categories</span>
+        <button class="fab fab-cat" onclick="openCategoryManager()"><i class="fas fa-tags"></i></button>
+      </div>
+      <div class="fab-wrap"><span class="fab-label">Add Income</span>
+        <button class="fab fab-income" onclick="openModal('incomeModal')"><i class="fas fa-plus"></i></button>
+      </div>
+      <div class="fab-wrap"><span class="fab-label">Add Expense</span>
+        <button class="fab fab-expense" onclick="openModal('expenseModal')"><i class="fas fa-minus"></i></button>
+      </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu">
+      <div class="ctx-item" onclick="handleCtxEdit()"><i class="fas fa-edit" style="width:14px;color:#3b82f6"></i> Edit</div>
+      <div class="ctx-item danger" onclick="handleCtxDelete()"><i class="fas fa-trash" style="width:14px"></i> Delete</div>
+    </div>
+
+    <!--INCOME MODAL-->
+    <div id="incomeModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Add Income</h2>
+          <button class="close-btn" onclick="closeModal('incomeModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Amount (₹)</label>
+              <input type="number" class="form-input" id="incomeAmount" placeholder="Enter amount" min="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input" id="incomeDate" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-select" id="incomeCategory">
+              <option value="">Select category</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description (optional)</label>
+            <input type="text" class="form-input" id="incomeDesc" placeholder="e.g. Monthly salary" />
+          </div>
+          <div class="recurring-toggle">
+            <input type="checkbox" id="incomeRecurring" onchange="toggleRecurringUI('income')" />
+            <label for="incomeRecurring">Make this recurring</label>
+          </div>
+          <div class="form-group frequency-select" id="incomeFrequencyRow" style="display:none">
+            <label class="form-label">Frequency</label>
+            <select class="form-select" id="incomeFrequency">
+              <option value="monthly">Monthly</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('incomeModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="addIncome()">Add Income</button>
+        </div>
+      </div>
+    </div>
+
+    <!--EXPENSE MODAL-->
+    <div id="expenseModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Add Expense</h2>
+          <button class="close-btn" onclick="closeModal('expenseModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Amount (₹)</label>
+              <input type="number" class="form-input" id="expenseAmount" placeholder="Enter amount" min="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input" id="expenseDate" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-select" id="expenseCategory">
+              <option value="">Select category</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description (optional)</label>
+            <input type="text" class="form-input" id="expenseDesc" placeholder="e.g. Grocery run" />
+          </div>
+          <div class="recurring-toggle">
+            <input type="checkbox" id="expenseRecurring" onchange="toggleRecurringUI('expense')" />
+            <label for="expenseRecurring">Make this recurring</label>
+          </div>
+          <div class="form-group frequency-select" id="expenseFrequencyRow" style="display:none">
+            <label class="form-label">Frequency</label>
+            <select class="form-select" id="expenseFrequency">
+              <option value="monthly">Monthly</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('expenseModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="addExpense()">Add Expense</button>
+        </div>
+      </div>
+    </div>
+
+    <!--EDIT MODAL-->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title">Edit Transaction</h2>
+          <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId" />
+          <input type="hidden" id="editType" />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Amount (₹)</label>
+              <input type="number" class="form-input" id="editAmount" min="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input" id="editDate" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-select" id="editCategory"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-input" id="editDesc" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveEdit()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!--SORT MODAL-->
+    <div id="sortModal" class="modal">
+      <div class="modal-content" style="width:320px">
+        <div class="modal-header">
+          <h2 class="modal-title">Sort Transactions</h2>
+          <button class="close-btn" onclick="closeModal('sortModal')">&times;</button>
+        </div>
+        <div class="sf-content">
+          <div class="sf-section-title">Sort By</div>
+          <label class="sf-option"><input type="radio" name="sf" value="date" checked /><label>Date</label></label>
+          <label class="sf-option"><input type="radio" name="sf" value="amount" /><label>Amount</label></label>
+          <label class="sf-option"><input type="radio" name="sf" value="category" /><label>Category</label></label>
+          <div class="sf-section-title">Order</div>
+          <label class="sf-option"><input type="radio" name="so" value="desc" checked /><label>Newest / Highest first</label></label>
+          <label class="sf-option"><input type="radio" name="so" value="asc" /><label>Oldest / Lowest first</label></label>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('sortModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="applySort()">Apply</button>
+        </div>
+      </div>
+    </div>
+
+    <!--FILTER MODAL-->
+    <div id="filterModal" class="modal">
+      <div class="modal-content" style="width:340px">
+        <div class="modal-header">
+          <h2 class="modal-title">Filter Transactions</h2>
+          <button class="close-btn" onclick="closeModal('filterModal')">&times;</button>
+        </div>
+        <div class="sf-content">
+          <div class="sf-section-title">Type</div>
+          <label class="sf-option"><input type="radio" name="ft" value="all" checked /><label>All transactions</label></label>
+          <label class="sf-option"><input type="radio" name="ft" value="income" /><label>Income only</label></label>
+          <label class="sf-option"><input type="radio" name="ft" value="expense" /><label>Expenses only</label></label>
+          <div class="sf-section-title">Category</div>
+          <div id="filterCatList" style="display:grid;grid-template-columns:1fr 1fr;gap:.1rem"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="resetFilter()">Reset</button>
+          <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
+        </div>
+      </div>
+    </div>
+
+    <!--DELETE CONFIRM MODAL-->
+    <div id="deleteModal" class="modal">
+      <div class="modal-content" style="width:360px">
+        <div class="modal-header">
+          <h2 class="modal-title">Delete Transaction</h2>
+          <button class="close-btn" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align:center;padding:1.75rem 1.5rem;">
+          <div style="font-size:2.5rem;margin-bottom:.75rem;">🗑️</div>
+          <p style="color:#e2e8f0;font-size:.95rem;line-height:1.6;">Are you sure you want to delete this transaction? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+          <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!--MANAGE CATEGORIES MODAL-->
+    <div id="categoryModal" class="modal">
+      <div class="modal-content" style="width:400px">
+        <div class="modal-header">
+          <h2 class="modal-title">Manage Categories</h2>
+          <button class="close-btn" onclick="closeModal('categoryModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:.8rem;color:#64748b;margin-bottom:1rem;">Add custom categories that appear in both income and expense dropdowns.</p>
+          <div style="display:flex;gap:.5rem;margin-bottom:1rem;">
+            <input type="text" class="form-input" id="newCatInput" placeholder="e.g. Gym, Travel, Pet care…" style="flex:1" onkeydown="if(event.key==='Enter') addCustomCategory()" />
+            <button class="btn btn-primary" onclick="addCustomCategory()" style="white-space:nowrap;">+ Add</button>
+          </div>
+          <div class="sf-section-title" style="margin-top:0;">Custom Categories</div>
+          <div id="customCatList"></div>
+          <div class="sf-section-title" style="margin-top:1rem;">Built-in Categories</div>
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem;">
+            <span class="builtin-cat-badge" style="background:#f97316">Food</span>
+            <span class="builtin-cat-badge" style="background:#f59e0b">Entertainment</span>
+            <span class="builtin-cat-badge" style="background:#eab308">Shopping</span>
+            <span class="builtin-cat-badge" style="background:#3b82f6">Transport</span>
+            <span class="builtin-cat-badge" style="background:#ec4899">Health</span>
+            <span class="builtin-cat-badge" style="background:#10b981">Investment</span>
+            <span class="builtin-cat-badge" style="background:#06b6d4">Salary</span>
+            <span class="builtin-cat-badge" style="background:#8b5cf6">Insurance</span>
+            <span class="builtin-cat-badge" style="background:#a78bfa">Other</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" onclick="closeModal('categoryModal')">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!--SET BUDGETS MODAL-->
+    <div id="budgetModal" class="modal">
+      <div class="modal-content" style="width:420px">
+        <div class="modal-header">
+          <h2 class="modal-title">Set Category Budgets</h2>
+          <button class="close-btn" onclick="closeModal('budgetModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:.8rem;color:#64748b;margin-bottom:1rem;">Set monthly spending limits per category. Leave blank for no limit.</p>
+          <div id="budgetList"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('budgetModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveBudgets()">Save Budgets</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MONTHLY SUMMARY MODAL-->
+    <div id="summaryModal" class="modal">
+      <div class="modal-content" style="width:520px">
+        <div class="modal-header">
+          <h2 class="modal-title">Monthly Report</h2>
+          <button class="close-btn" onclick="closeModal('summaryModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:1.25rem 1.5rem">
+          <div class="summary-month-nav">
+            <button class="summary-month-btn" onclick="shiftSummaryMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+            <span class="summary-month-title" id="summaryMonthTitle">March 2026</span>
+            <button class="summary-month-btn" onclick="shiftSummaryMonth(1)"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-stat">
+              <div class="summary-label">Total Income</div>
+              <div class="summary-value positive" id="summaryInc">₹0</div>
+            </div>
+            <div class="summary-stat">
+              <div class="summary-label">Total Expenses</div>
+              <div class="summary-value negative" id="summaryExp">₹0</div>
+            </div>
+            <div class="summary-stat">
+              <div class="summary-label">Net Balance</div>
+              <div class="summary-value positive" id="summaryNet">₹0</div>
+            </div>
+            <div class="summary-stat">
+              <div class="summary-label">Savings Rate</div>
+              <div class="summary-value positive" id="summaryRate">0%</div>
+            </div>
+          </div>
+          <div class="summary-grid" style="margin-bottom:.75rem;">
+            <div class="summary-stat">
+              <div class="summary-label">Top Spending Category</div>
+              <div style="font-size:.85rem;font-weight:600;color:#e2e8f0;margin-top:.2rem;" id="summaryTopCat">—</div>
+            </div>
+            <div class="summary-stat">
+              <div class="summary-label">Biggest Single Expense</div>
+              <div style="font-size:.85rem;font-weight:600;color:#e2e8f0;margin-top:.2rem;" id="summaryBiggest">—</div>
+            </div>
+          </div>
+          <div class="sf-section-title" style="margin-top:0;margin-bottom:.5rem;">Expense Breakdown</div>
+          <div id="summaryCatList" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" onclick="closeModal('summaryModal')">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!--DELETE CARD MODAL-->
+    <div id="deleteCardModal" class="modal">
+      <div class="modal-content" style="width:360px">
+        <div class="modal-header">
+          <h2 class="modal-title">Remove Card</h2>
+          <button class="close-btn" onclick="closeModal('deleteCardModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="text-align:center;padding:1.75rem 1.5rem;">
+          <div style="font-size:2.5rem;margin-bottom:.75rem;">💳</div>
+          <p style="color:#e2e8f0;font-size:.95rem;line-height:1.6;">Remove <strong id="deleteCardName">this</strong> card and all its transactions? <br><span style="color:#ef4444;font-size:.85rem;">This cannot be undone.</span></p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('deleteCardModal')">Cancel</button>
+          <button class="btn btn-danger" onclick="doDeleteCard()">Remove Card</button>
+        </div>
+      </div>
+    </div>
+
+    <!--CHANGE PIN MODAL-->
+    <div id="changePinModal" class="modal">
+      <div class="modal-content" style="width:360px">
+        <div class="modal-header">
+          <h2 class="modal-title"><i class="fas fa-key" style="color:#f59e0b;margin-right:.5rem"></i>Change PIN</h2>
+          <button class="close-btn" onclick="closeModal('changePinModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:1.25rem 1.5rem">
+          <div class="form-group">
+            <label class="form-label">Current PIN</label>
+            <input type="password" class="form-input" id="cpOld" maxlength="6" inputmode="numeric" placeholder="Current PIN" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">New PIN (4 digits)</label>
+            <input type="password" class="form-input" id="cpNew" maxlength="6" inputmode="numeric" placeholder="New PIN" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New PIN</label>
+            <input type="password" class="form-input" id="cpNew2" maxlength="6" inputmode="numeric" placeholder="Repeat new PIN" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('changePinModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="changePin()">Update PIN</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script (3).js" defer></script>
+  </body>
+</html>
