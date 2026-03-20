@@ -215,7 +215,7 @@ function lockApp() {
   userData = null; transactions = []; customCategories = [];
   categoryBudgets = {}; recurringTemplates = [];
   showLockScreen();
-  notify("App locked 🔒", "info");
+  notify("App locked", "info");
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
