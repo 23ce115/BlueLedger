@@ -108,6 +108,7 @@ function hasStoredData() {
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 function showLockScreen(subtitle) {
+  const fab = document.querySelector(".add-buttons"); if (fab) fab.style.display = "none";
   pinBuffer = "";
   updatePinDots();
   document.getElementById("lockScreen").style.display = "flex";
@@ -119,7 +120,7 @@ function showLockScreen(subtitle) {
 
 function hideLockScreen() {
   document.getElementById("lockScreen").style.display = "none";
-  const fab = document.querySelector(".add-buttons"); if (fab) fab.style.display = "";
+  syncFabVisibility();
 }
 
 function pinPress(digit) {
@@ -923,28 +924,28 @@ function exportCSV() {
    MODALS
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-
 function syncFabVisibility() {
   const fab = document.querySelector(".add-buttons");
   if (!fab) return;
-  // Hide if not onboarded yet
+  // Never show before onboarding is done
   if (!userData) { fab.style.display = "none"; return; }
-  // Hide if lock screen is showing
-  if (document.getElementById("lockScreen").style.display !== "none") { fab.style.display = "none"; return; }
-  // On mobile: hide if any modal is open
+  // Never show on lock screen
+  const ls = document.getElementById("lockScreen");
+  if (ls && ls.style.display !== "none") { fab.style.display = "none"; return; }
+  // On mobile: hide when any modal is open
   if (window.innerWidth <= 768) {
     const anyOpen = Array.from(document.querySelectorAll(".modal")).some(m => m.style.display === "block");
     fab.style.display = anyOpen ? "none" : "";
     return;
   }
-  // Desktop: always show once onboarded
+  // Desktop: always visible once onboarded
   fab.style.display = "";
 }
 
 function openModal(id) {
   document.getElementById(id).style.display = "block";
   document.body.style.overflow = "hidden";
-  const fab = document.querySelector(".add-buttons"); if (fab) fab.style.display = "none";
+  syncFabVisibility();
   const t = todayStr();
   if (id === "incomeModal") {
     ["incomeAmount","incomeDesc"].forEach(el => document.getElementById(el).value = "");
@@ -976,7 +977,7 @@ function closeModal(id) {
   }
 }
 
-const ALL_MODALS = ["incomeModal","expenseModal","editModal","sortModal","filterModal","deleteModal","deleteCardModal","categoryModal","budgetModal","summaryModal","changePinModal"];
+const ALL_MODALS = ["incomeModal","expenseModal","editModal","sortModal","filterModal","deleteModal","deleteCardModal","categoryModal","budgetModal","summaryModal","changePinModal","resetModal"];
 window.addEventListener("click", e => {
   ALL_MODALS.forEach(id => { if (e.target === document.getElementById(id)) closeModal(id); });
 });
@@ -1066,6 +1067,34 @@ function completeOnboarding() {
   refreshAll();
   syncFabVisibility();
   notify("Welcome, " + name.split(" ")[0] + "! 🔒 Encrypted & secured.", "success");
+}
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SETTINGS MENU
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+function toggleSettingsMenu() {
+  const menu = document.getElementById("settingsMenu");
+  menu.classList.toggle("open");
+}
+
+function closeSettingsMenu() {
+  document.getElementById("settingsMenu").classList.remove("open");
+}
+
+// Close settings menu when clicking outside
+document.addEventListener("click", e => {
+  if (!e.target.closest("#settingsDropdown")) closeSettingsMenu();
+});
+
+function openResetModal() { openModal("resetModal"); }
+
+function confirmReset() {
+  localStorage.clear();
+  closeModal("resetModal");
+  notify("App reset. Reloading...", "info");
+  setTimeout(() => location.reload(), 1000);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
