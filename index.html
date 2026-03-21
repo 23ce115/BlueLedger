@@ -60,7 +60,7 @@
           <div class="ob-section" style="padding:0;margin-top:1rem">Card Details</div>
           <div class="form-group">
             <label class="form-label">Last 4 digits of card number</label>
-            <input type="text" class="form-input" id="ob-card" placeholder="e.g. 4567" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" />
+            <input type="text" class="form-input" id="ob-card" placeholder="e.g. 1234" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" />
             <div class="form-hint"><i class="fas fa-shield-alt"></i> Only the last 4 digits are stored — never your full number</div>
           </div>
           <div class="ob-section" style="padding:0;margin-top:1rem">Budget</div>
@@ -72,11 +72,11 @@
           <div class="ob-section" style="padding:0;margin-top:1rem">Security</div>
           <div class="form-group">
             <label class="form-label">Set a PIN (4 digits)</label>
-            <input type="password" class="form-input" id="ob-pin" placeholder="e.g. 1234" maxlength="6" inputmode="numeric" pattern="[0-9]{4,6}" />
+            <input type="password" class="form-input" id="ob-pin" placeholder="e.g. 1234" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" />
           </div>
           <div class="form-group">
             <label class="form-label">Confirm PIN</label>
-            <input type="password" class="form-input" id="ob-pin2" placeholder="Repeat PIN" maxlength="6" inputmode="numeric" />
+            <input type="password" class="form-input" id="ob-pin2" placeholder="Repeat PIN" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" />
             <div class="form-hint"><i class="fas fa-lock"></i> Your data is encrypted with this PIN. Don't forget it.</div>
           </div>
           </div>
@@ -181,16 +181,12 @@
         <div class="card my-card">
           <div class="card-header">
             <h3 class="card-title">My Card</h3>
-            <button class="card-menu-btn" style="color:rgba(255,255,255,.6)" onclick="showCardInfo('mycard')"><i class="fas fa-ellipsis-h"></i></button>
           </div>
           <div style="font-size:.72rem;color:rgba(255,255,255,.7);margin-bottom:.75rem;">Primary wallet</div>
           <div class="card-chip"></div>
           <div class="card-number" id="cardNumberDisplay">•••• •••• •••• ••••</div>
           <div class="card-holder-name" id="cardHolderDisplay">YOUR NAME</div>
-          <div class="card-logo">
-            <div class="card-logo-circle logo-red"></div>
-            <div class="card-logo-circle logo-orange"></div>
-          </div>
+          <button class="my-card-dots" onclick="openCardOptionsMenu(event)"><i class="fas fa-ellipsis-h"></i></button>
           <div class="spending-section">
             <div class="spending-label">Spending Limit</div>
             <div class="spending-limit-val" id="spendLimitVal">₹0</div>
@@ -206,8 +202,12 @@
       <div class="chart-section">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Overview &nbsp;<span id="chartBadge" style="text-transform:none;font-size:.68rem;color:#94a3b8;font-weight:400;">(This Year)</span></h3>
-            <button class="card-menu-btn" onclick="showCardInfo('chart')"><i class="fas fa-ellipsis-h"></i></button>
+            <h3 class="card-title">Overview</h3>
+            <div class="chart-period-btns">
+              <button class="chart-period-btn active" id="cpDaily" onclick="setChartPeriod('daily')">Daily</button>
+              <button class="chart-period-btn" id="cpWeekly" onclick="setChartPeriod('weekly')">Weekly</button>
+              <button class="chart-period-btn" id="cpMonthly" onclick="setChartPeriod('monthly')">Monthly</button>
+            </div>
           </div>
           <div class="chart-container" id="chartContainer"></div>
           <div class="chart-labels" id="chartLabels"></div>
@@ -618,7 +618,7 @@
             <input type="password" class="form-input" id="cpOld" maxlength="6" inputmode="numeric" placeholder="Current PIN" />
           </div>
           <div class="form-group">
-            <label class="form-label">New PIN (4–6 digits)</label>
+            <label class="form-label">New PIN (4 digits)</label>
             <input type="password" class="form-input" id="cpNew" maxlength="6" inputmode="numeric" placeholder="New PIN" />
           </div>
           <div class="form-group">
@@ -633,7 +633,33 @@
       </div>
     </div>
 
-        <!-- ═══════════════ RESET CONFIRM MODAL ═══════════════ -->
+        <!-- ═══════════════ CARD OPTIONS MENU ═══════════════ -->
+    <div id="cardOptionsMenu" style="display:none;position:fixed;background:#1e293b;border:1px solid rgba(255,255,255,.12);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:500;min-width:170px;overflow:hidden;">
+      <div class="ctx-item" onclick="closeCardOptionsMenu();openEditLimitModal()"><i class="fas fa-sliders-h" style="width:14px;color:#10b981"></i> Edit Spending Limit</div>
+
+    </div>
+
+    <!-- ═══════════════ EDIT SPENDING LIMIT MODAL ═══════════════ -->
+    <div id="editLimitModal" class="modal">
+      <div class="modal-content" style="width:360px">
+        <div class="modal-header">
+          <h2 class="modal-title"><i class="fas fa-sliders-h" style="color:#10b981;margin-right:.5rem"></i>Edit Spending Limit</h2>
+          <button class="close-btn" onclick="closeModal('editLimitModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:1.25rem 1.5rem">
+          <div class="form-group">
+            <label class="form-label">New Monthly Spending Limit (₹)</label>
+            <input type="number" class="form-input" id="newSpendLimit" placeholder="e.g. 50000" min="1" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('editLimitModal')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveSpendingLimit()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ RESET CONFIRM MODAL ═══════════════ -->
     <div id="resetModal" class="modal">
       <div class="modal-content" style="width:380px">
         <div class="modal-header">
